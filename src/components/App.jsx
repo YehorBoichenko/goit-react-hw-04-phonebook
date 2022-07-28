@@ -1,22 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from './ContactLIst/ContactList';
 import Filter from './Filter/Filter';
 import Title from './Title/Title';
 import styles from '../App.module.css';
 import { nanoid } from 'nanoid';
-
-const useLocalStorage = (key, defaultValue) => {
-  const [state, setState] = useState(() => {
-    return JSON.parse(window.localStorage.getItem(key)) ?? defaultValue;
-  });
-  useEffect(() => {
-    window.localStorage.setItem(key, JSON.stringify(state));
-  }, [key, state]);
-  return [state, setState];
-};
+import { useLocalStorage } from './CustomHooks/UseLocalStorage';
 
 export default function App() {
+  useLocalStorage();
   const [filter, setFilter] = useState('');
   const [contacts, setContacts] = useLocalStorage('contacts', [
     { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
