@@ -5,7 +5,7 @@ import Filter from './Filter/Filter';
 import Title from './Title/Title';
 import styles from '../App.module.css';
 import { nanoid } from 'nanoid';
-import { useLocalStorage } from './CustomHooks/UseLocalStorage';
+import { useLocalStorage } from 'CustomHooks/UseLocalStorage';
 
 export default function App() {
   useLocalStorage();
