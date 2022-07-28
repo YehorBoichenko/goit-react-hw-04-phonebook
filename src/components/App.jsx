@@ -1,80 +1,67 @@
-import React, { Component } from 'react';
-import ContactForm from "./ContactForm/ContactForm";
-import ContactList from "./ContactLIst/ContactList";
-import Filter from "./Filter/Filter";
-import Title from "./Title/Title";
-import styles from '../App.module.css'
+import React, { useState, useEffect } from 'react';
+import ContactForm from './ContactForm/ContactForm';
+import ContactList from './ContactLIst/ContactList';
+import Filter from './Filter/Filter';
+import Title from './Title/Title';
+import styles from '../App.module.css';
 import { nanoid } from 'nanoid';
 
-export default class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
-
-  componentDidMount() {
-    const getContacts = localStorage.getItem('contacts');
-    const parseContacts = JSON.parse(getContacts);
-    if (parseContacts) {
-      this.setState({ contacts: parseContacts });
-    }
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-
-  addContact = newContact => {
-
-  const contactsCheck = this.state.contacts.some(
-    ({ name }) => name === newContact.name,
-  );
-  if (contactsCheck ) {
-    alert(`${newContact.name} is already in contacts book`);
-    return;
-  }
-    this.setState(prevState => ({
-      contacts: [{ ...newContact, id:nanoid()}, ...prevState.contacts],
-  }));
+const useLocalStorage = (key, defaultValue) => {
+  const [state, setState] = useState(() => {
+    return JSON.parse(window.localStorage.getItem(key)) ?? defaultValue;
+  });
+  useEffect(() => {
+    window.localStorage.setItem(key, JSON.stringify(state));
+  }, [key, state]);
+  return [state, setState];
 };
-  onChange = event => {
-   const {name,value}=event.currentTarget
-    this.setState({
-      [name]:value
-    });
-  };
-onButtonDelete =  id => {
-    this.setState({
-      contacts: this.state.contacts.filter(contact => contact.id !== id),
-    });
-  this.reset();
-};
-  reset = () => {
-    this.setState({ filter: '' });
-  };
 
-render(){
-  const { filter, contacts } = this.state;
+export default function App() {
+  const [filter, setFilter] = useState('');
+  const [contacts, setContacts] = useLocalStorage('contacts', [
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ]);
+
+  const addContact = (name, number) => {
+    const newContact = {
+      id: nanoid(),
+      name,
+      number,
+    };
+    const contactCheck = contacts.find(({ name }) => name === newContact.name);
+
+    if (contactCheck !== undefined) {
+      alert(`${newContact.name} is already in our contacts book`);
+      return;
+    }
+    setContacts(prevState => [newContact, ...prevState]);
+  };
+  const onChange = event => {
+    setFilter(event.target.value);
+  };
+  const onButtonDelete = id => {
+    setContacts(prevState => prevState.filter(contact => contact.id !== id));
+  };
   const loweredContacts = filter.toLowerCase();
-  const filteredContacts = contacts.filter(({ name }) => name.toLowerCase().includes(loweredContacts),);
+  const filteredContacts = contacts.filter(({ name }) =>
+    name.toLowerCase().includes(loweredContacts)
+  );
+
   return (
     <>
-    <section className={styles.section}>
-      <Title text="PhoneBook" />
-      <ContactForm addContact={this.addContact} list={this.state.contacts} />
-      <Title text="Contacts" />
-        <Filter value={this.state.filter} onChange={this.onChange} />
-      <ContactList filtered={filteredContacts} onButtonDelete={this.onButtonDelete}/>
+      <section className={styles.section}>
+        <Title text="PhoneBook" />
+        <ContactForm addContact={addContact} list={contacts} />
+        <Title text="Contacts" />
+        <Filter value={filter} onChange={onChange} />
+        <ContactList
+          filtered={filteredContacts}
+          onButtonDelete={onButtonDelete}
+        />
       </section>
     </>
-  )
+  );
 }
-
-};
